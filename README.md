@@ -1,66 +1,167 @@
-## Foundry
+# Onchain Game Contracts
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This repository contains smart contracts designed to handle payments and rewards for onchain games. The contracts provide a secure and flexible way to manage entry fees and rewards in both ETH and USDC.
 
-Foundry consists of:
+## Overview
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+The contracts serve as the backend logic for onchain games, handling:
 
-## Documentation
+- Entry fee collection (ETH or USDC)
+- Reward distribution
+- Contract funding and management
+- Balance tracking
 
-https://book.getfoundry.sh/
+## Contracts
+
+### GameAirdrop.sol
+
+The base contract that provides core functionality for game payments and rewards:
+
+- Entry fee collection in ETH or USDC
+- Reward recording and claiming
+- Owner-only functions for contract management
+- Balance tracking for both ETH and USDC
+
+### GameAirdropSigned.sol
+
+An enhanced version of GameAirdrop that adds signature-based reward verification:
+
+- All features from GameAirdrop
+- Signature-based reward recording for enhanced security
+- Protection against replay attacks
+- Deadline-based signature validation
+
+## Key Features
+
+### Entry Fees
+
+- Configurable entry fees for both ETH and USDC
+- Owner can update fees independently
+- Default entry fees:
+  - ETH: 0.0001 ETH
+  - USDC: 0.10 USDC
+
+### Rewards
+
+- Configurable reward amounts for both ETH and USDC
+- Default rewards:
+  - ETH: 0.0001 ETH
+  - USDC: 1 USDC
+- Secure reward claiming mechanism
+
+### Security Features
+
+- Owner-only functions for critical operations
+- Signature verification for reward recording (GameAirdropSigned)
+- Protection against replay attacks
+- Safe token transfers using OpenZeppelin's SafeERC20
 
 ## Usage
 
-### Build
+1. Deploy the contract (either GameAirdrop or GameAirdropSigned)
+2. Fund the contract with ETH and/or USDC
+3. Players can start games by paying the entry fee
+4. Record rewards for successful players
+5. Players can claim their rewards
 
-```shell
-$ forge build
+## Development
+
+Built with:
+
+- Solidity ^0.8.19
+- OpenZeppelin Contracts
+- Foundry for testing and deployment
+
+## License
+
+MIT
+
+## Prerequisites
+
+- [Foundry](https://book.getfoundry.sh/getting-started/installation)
+- [Git](https://git-scm.com/downloads)
+
+## Installation
+
+1. Clone the repository:
+
+```bash
+git clone <your-repo-url>
+cd game-contracts
 ```
 
-### Test
+2. Install dependencies:
 
-```shell
-$ forge test
+```bash
+forge install
 ```
 
-### Format
+## Configuration
 
-```shell
-$ forge fmt
+Create a `.env` file with the following variables:
+
+```
+BASE_RPC_URL=<your-base-rpc-url>
+BASE_SEPOLIA_RPC_URL=<your-base-sepolia-rpc-url>
+BASESCAN_API_KEY=<your-basescan-api-key>
+PRIVATE_KEY=<your-private-key>
 ```
 
-### Gas Snapshots
+## Deployment
 
-```shell
-$ forge snapshot
+To deploy to Base Sepolia testnet:
+
+```bash
+source .env
+forge script script/Deploy.s.sol:Deploy --rpc-url $BASE_SEPOLIA_RPC_URL --broadcast --verify -vvvv
 ```
 
-### Anvil
+To deploy to Base mainnet:
 
-```shell
-$ anvil
+```bash
+source .env
+forge script script/Deploy.s.sol:Deploy --rpc-url $BASE_RPC_URL --broadcast --verify -vvvv
 ```
 
-### Deploy
+## Testing
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+Run the test suite:
+
+```bash
+forge test
 ```
 
-### Cast
+Run tests with gas reporting:
 
-```shell
-$ cast <subcommand>
+```bash
+forge test --gas-report
 ```
 
-### Help
+## Contract Usage
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+### For Players
+
+1. Play a game by calling `playGame`:
+
+   - Pay with ETH: Send ETH along with the call
+   - Pay with USDC: Approve the contract first, then call without ETH
+
+2. Claim rewards using `claimReward`:
+   - Specify whether claiming ETH or USDC rewards
+   - Rewards are sent directly to the player's wallet
+
+### For Contract Owner
+
+- Withdraw accumulated funds using `ownerWithdraw`
+- Monitor game activity through emitted events
+
+## Security Features
+
+- ReentrancyGuard for all external functions
+- Pull-based reward claiming
+- SafeERC20 for token transfers
+- Ownable access control
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
