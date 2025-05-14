@@ -113,14 +113,16 @@ To deploy to Base Sepolia testnet:
 
 ```bash
 source .env
-forge script script/Deploy.s.sol:Deploy --rpc-url $BASE_SEPOLIA_RPC_URL --broadcast --verify -vvvv
+forge script script/Deploy.s.sol:DeployScript --rpc-url $BASE_SEPOLIA_RPC_URL --broadcast --verify -vvvv
 ```
 
 To deploy to Base mainnet:
 
 ```bash
 source .env
-forge script script/Deploy.s.sol:Deploy --rpc-url $BASE_RPC_URL --broadcast --verify -vvvv
+forge script script/Deploy.s.sol:DeployScript --rpc-url $BASE_RPC_URL --broadcast --verify -vvvv
+
+forge script script/Deploy.s.sol:DeployScript --rpc-url $BASE_RPC_URL --broadcast --verify -vvvv
 ```
 
 ## Testing
