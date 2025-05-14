@@ -265,4 +265,64 @@ contract GameAirdropTest is Test {
         gameAirdrop.withdrawFunds(address(0), 0.5 ether);
         vm.stopPrank();
     }
+
+    function test_CompleteFlow_FundAndClaim() public {
+        // 1. Fund the contract with additional ETH
+        uint256 fundingAmount = 0.5 ether;
+        vm.startPrank(owner);
+        gameAirdrop.fundContract{value: fundingAmount}();
+        assertEq(address(gameAirdrop).balance, INITIAL_FUNDING + fundingAmount);
+        vm.stopPrank();
+
+        // 2. Record a reward for player1
+        vm.prank(owner);
+        gameAirdrop.recordReward(player1, true);
+
+        // 3. Player1 claims their reward
+        vm.startPrank(player1);
+        uint256 balanceBefore = player1.balance;
+        gameAirdrop.claimReward(true);
+        assertEq(player1.balance - balanceBefore, ETH_PAYOUT);
+        vm.stopPrank();
+
+        // 4. Verify the contract balance decreased
+        assertEq(address(gameAirdrop).balance, INITIAL_FUNDING + fundingAmount - ETH_PAYOUT);
+    }
+
+    function test_TransferOwnership() public {
+        address newOwner = makeAddr("newOwner");
+        
+        // Transfer ownership
+        vm.startPrank(owner);
+        gameAirdrop.transferOwnership(newOwner);
+        assertEq(gameAirdrop.owner(), newOwner);
+        vm.stopPrank();
+
+        // Verify old owner can't call owner functions
+        vm.startPrank(owner);
+        vm.expectRevert(abi.encodeWithSelector(GameAirdrop.OnlyOwner.selector));
+        gameAirdrop.setEntryFee(true, 0.0002 ether);
+        vm.stopPrank();
+
+        // Verify new owner can call owner functions
+        vm.startPrank(newOwner);
+        gameAirdrop.setEntryFee(true, 0.0002 ether);
+        assertEq(gameAirdrop.ethEntryFee(), 0.0002 ether);
+        vm.stopPrank();
+    }
+
+    function test_TransferOwnershipToZeroAddress() public {
+        vm.startPrank(owner);
+        vm.expectRevert(bytes("Invalid new owner"));
+        gameAirdrop.transferOwnership(address(0));
+        vm.stopPrank();
+    }
+
+    function test_NonOwnerTransferOwnership() public {
+        address newOwner = makeAddr("newOwner");
+        vm.startPrank(player1);
+        vm.expectRevert(abi.encodeWithSelector(GameAirdrop.OnlyOwner.selector));
+        gameAirdrop.transferOwnership(newOwner);
+        vm.stopPrank();
+    }
 } 

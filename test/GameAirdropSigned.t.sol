@@ -294,4 +294,41 @@ contract GameAirdropSignedTest is Test {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerPrivateKey, ethSignedMessageHash);
         return abi.encodePacked(r, s, v);
     }
+
+    function test_TransferOwnership() public {
+        address newOwner = makeAddr("newOwner");
+        
+        // Transfer ownership
+        vm.startPrank(owner);
+        gameAirdrop.transferOwnership(newOwner);
+        assertEq(gameAirdrop.owner(), newOwner);
+        vm.stopPrank();
+
+        // Verify old owner can't call owner functions
+        vm.startPrank(owner);
+        vm.expectRevert(abi.encodeWithSelector(GameAirdropSigned.OnlyOwner.selector));
+        gameAirdrop.setEntryFee(true, 0.0002 ether);
+        vm.stopPrank();
+
+        // Verify new owner can call owner functions
+        vm.startPrank(newOwner);
+        gameAirdrop.setEntryFee(true, 0.0002 ether);
+        assertEq(gameAirdrop.ethEntryFee(), 0.0002 ether);
+        vm.stopPrank();
+    }
+
+    function test_TransferOwnershipToZeroAddress() public {
+        vm.startPrank(owner);
+        vm.expectRevert(bytes("Invalid new owner"));
+        gameAirdrop.transferOwnership(address(0));
+        vm.stopPrank();
+    }
+
+    function test_NonOwnerTransferOwnership() public {
+        address newOwner = makeAddr("newOwner");
+        vm.startPrank(player1);
+        vm.expectRevert(abi.encodeWithSelector(GameAirdropSigned.OnlyOwner.selector));
+        gameAirdrop.transferOwnership(newOwner);
+        vm.stopPrank();
+    }
 } 
