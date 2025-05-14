@@ -34,6 +34,7 @@ contract GameAirdrop {
     event RewardRecorded(address indexed player, uint256 amount, bool isETH);
     event PayoutAmountUpdated(bool isETH, uint256 oldAmount, uint256 newAmount);
     event ContractFunded(address indexed token, uint256 amount);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     // Custom errors
     error InsufficientFee(uint256 sent, uint256 required);
@@ -234,6 +235,15 @@ contract GameAirdrop {
      */
     function getRewards(address player) external view returns (uint256 ethReward, uint256 usdcReward) {
         return (ethRewards[player], usdcRewards[player]);
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new owner
+     * @param newOwner The address of the new owner
+     */
+    function transferOwnership(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "Invalid new owner");
+        owner = newOwner;
     }
 
     // Required to receive ETH
